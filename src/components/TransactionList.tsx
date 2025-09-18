@@ -33,7 +33,7 @@ const TransactionList = ({
 
 const List = ({ transaction, onDeleteTransaction }: ListProp) => {
   return (
-    <li className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm">
+    <li className="flex justify-between items-center bg-white rounded-lg p-3 shadow-sm mb-4">
       <div>
         <div className="font-medium">{transaction.description}</div>
         <div className="text-gray-500 text-sm">{transaction.category}</div>
@@ -46,7 +46,7 @@ const List = ({ transaction, onDeleteTransaction }: ListProp) => {
             transaction.type === "income" ? "text-green-600" : "text-red-600"
           }`}
         >
-          {transaction.amount}
+          ${transaction.amount}
         </span>
         <span
           className="cursor-pointer"
