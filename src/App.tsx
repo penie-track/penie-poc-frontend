@@ -1,37 +1,18 @@
-import React, { useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
-import { Transaction } from "./types/transaction";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
+import Header from "./components/Header";
 
-const App: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const handleAddTransaction = (tx: Transaction) => {
-    setTransactions([tx, ...transactions]);
-  };
+const App = () => {
   return (
     <div>
-      <nav className="bg-gray-800 p-8 text-white flex gap-10">
-        <Link className="hover:underline" to="/">
-          DashBoard
-        </Link>
-        <Link className="hover:underline" to="/Analytics">
-          Analytics
-        </Link>
-      </nav>
+      <Header />
       <h1 className="text-3xl font-bold text-purple-600 text-center">
         Hello from Penie 👋
       </h1>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <Dashboard
-              transactions={transactions}
-              onAddTransaction={handleAddTransaction}
-            />
-          }
-        ></Route>
+        <Route path="/" element={<Dashboard />} />
         <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </div>
