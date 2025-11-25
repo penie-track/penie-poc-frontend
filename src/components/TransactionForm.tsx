@@ -1,8 +1,9 @@
-import { useState } from "react";
-import Button from "./designLibrary/Button";
-import Input from "./designLibrary/Input";
-import Select from "./designLibrary/Select";
+import { useEffect, useState } from "react";
+import Button from "./DesignLibrary/Button";
+import Input from "./DesignLibrary/Input";
+import Select from "./DesignLibrary/Select";
 import { Transaction } from "../types/transaction";
+import transactionsService from "../services/data";
 
 type TransactionFormProps = {
   onAddTransaction: (transaction: Transaction) => void;
@@ -36,17 +37,19 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
       id: Date.now(),
       amount: +form.amount,
     };
-    onAddTransaction(newTransaction);
-
-    console.log("Transaction added", newTransaction);
-
-    setForm({
-      amount: 0,
-      description: "",
-      category: "",
-      date: "",
-      type: "income",
-    });
+    transactionsService
+      .create(newTransaction)
+      .then((res) => {
+        onAddTransaction(newTransaction);
+        setForm({
+          amount: 0,
+          description: "",
+          category: "",
+          date: "",
+          type: "income",
+        });
+      })
+      .catch((err) => console.error(err));
   };
   return (
     <form className="bg-white shadow-lg rounded-xl p-6" onSubmit={handleSubmit}>
