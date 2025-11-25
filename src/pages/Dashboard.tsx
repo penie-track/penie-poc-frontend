@@ -1,11 +1,15 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import TransactionForm from "../components/TransactionForm";
 import { useState } from "react";
 import { Transaction } from "../types/transaction";
 import TransactionList from "../components/TransactionList";
 
-const Dashboard = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+type DashboardProps = {
+  transactions: Transaction[];
+  setTransactions: Dispatch<SetStateAction<Transaction[]>>;
+};
+
+const Dashboard = ({ transactions, setTransactions }: DashboardProps) => {
   const handleAddTransaction = (transaction: Transaction) => {
     setTransactions((prev) => [...prev, transaction]);
   };
