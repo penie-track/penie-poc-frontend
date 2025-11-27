@@ -7,6 +7,7 @@ import Analytics from "./pages/Analytics";
 import TransactionScreen from "./pages/TransactionScreen";
 import { Transaction } from "./types/transaction";
 import transactionsService from "./services/data";
+import AI from "./pages/AI";
 
 const App = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -52,6 +53,7 @@ const App = () => {
             />
           }
         />
+        <Route path="/ai" element={<AI />} />
       </Routes>
     </div>
   );

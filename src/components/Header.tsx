@@ -26,6 +26,9 @@ const Header = () => {
             >
               Analytics
             </NavLink>
+            <NavLink to="/ai" className="text-gray-700 hover:text-purple-600">
+              AI
+            </NavLink>
           </nav>
         </div>
       </header>
