@@ -1,17 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Add";
-import Analytics from "./pages/Analytics";
 import Header from "./components/Header";
-import { useState, useEffect } from "react";
+import Add from "./pages/Add";
+import Home from "./pages/Home";
+import Analytics from "./pages/Analytics";
+import TransactionScreen from "./pages/TransactionScreen";
 import { Transaction } from "./types/transaction";
 import transactionsService from "./services/data";
-import Add from "./pages/Add";
 
 const App = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
+
   useEffect(() => {
-    console.log("Effect");
     transactionsService.getAll().then((res) => {
       const formatted = res.data.data.map((t: any) => ({
         ...t,
@@ -21,23 +23,35 @@ const App = () => {
       setTransactions(formatted);
     });
   }, []);
+
   return (
     <div>
       <Header />
-      <h1 className="text-3xl font-bold text-purple-600 text-center">
-        Hello from Penie 👋
-      </h1>
+
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route
           path="/add"
           element={
             <Add
               transactions={transactions}
               setTransactions={setTransactions}
+              editingTransaction={editingTransaction}
+              setEditingTransaction={setEditingTransaction}
             />
           }
         />
         <Route path="/analytics" element={<Analytics data={transactions} />} />
+        <Route
+          path="/transactions"
+          element={
+            <TransactionScreen
+              transactions={transactions}
+              setTransactions={setTransactions}
+              setEditingTransaction={setEditingTransaction}
+            />
+          }
+        />
       </Routes>
     </div>
   );

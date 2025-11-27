@@ -1,21 +1,20 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import TransactionForm from "../components/TransactionForm";
-import TransactionList from "../components/TransactionList";
 import { Transaction } from "../types/transaction";
-import transactionService from "../services/data";
 
-type AddTransactionProps = {
+type AddProps = {
   transactions: Transaction[];
   setTransactions: Dispatch<SetStateAction<Transaction[]>>;
+  editingTransaction: Transaction | null;
+  setEditingTransaction: Dispatch<SetStateAction<Transaction | null>>;
 };
 
-const AddTransaction = ({
+const Add = ({
   transactions,
   setTransactions,
-}: AddTransactionProps) => {
-  const [editingTransaction, setEditingTransaction] =
-    useState<Transaction | null>(null);
-
+  editingTransaction,
+  setEditingTransaction,
+}: AddProps) => {
   const handleAddTransaction = (transaction: Transaction) => {
     setTransactions((prev) => [...prev, transaction]);
   };
@@ -27,26 +26,15 @@ const AddTransaction = ({
     setEditingTransaction(null); // exit edit mode
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    await transactionService.remove(id);
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
-
   return (
-    <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="max-w-6xl mx-auto p-6">
       <TransactionForm
         onAddTransaction={handleAddTransaction}
         onUpdateTransaction={handleUpdateTransaction}
         editingTransaction={editingTransaction}
       />
-
-      <TransactionList
-        transactions={transactions}
-        onDeleteTransaction={handleDeleteTransaction}
-        onEditTransaction={setEditingTransaction}
-      />
     </div>
   );
 };
 
-export default AddTransaction;
+export default Add;

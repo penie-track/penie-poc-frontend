@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "./DesignLibrary/Button";
 import Input from "./DesignLibrary/Input";
 import Select from "./DesignLibrary/Select";
@@ -10,13 +11,16 @@ type TransactionFormProps = {
   onAddTransaction: (transaction: Transaction) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   editingTransaction?: Transaction | null;
+  setEditingTransaction?: (t: Transaction | null) => void;
 };
 
 const TransactionForm = ({
   onAddTransaction,
   onUpdateTransaction,
   editingTransaction,
+  setEditingTransaction,
 }: TransactionFormProps) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState<Omit<Transaction, "id">>({
     amount: 0,
     description: "",
@@ -45,52 +49,6 @@ const TransactionForm = ({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.amount || !form.date || !form.category) {
-      alert("Please fill all required fields");
-      return;
-    }
-    // Editing transaction
-    if (editingId !== null) {
-      const updatedTransaction: Transaction = {
-        id: editingId,
-        ...form,
-        amount: +form.amount,
-      };
-
-      transactionsService
-        .update(editingId, updatedTransaction)
-        .then((res) => {
-          onUpdateTransaction(res.data);
-          resetForm();
-        })
-        .catch((err) => {
-          if (axios.isAxiosError(err)) {
-            console.error("Backend Error:", err.response?.data);
-          }
-          alert("Update failed. Check console.");
-        });
-
-      return;
-    }
-
-    // Adding transaction
-    const newTransactionData = {
-      ...form,
-      amount: +form.amount,
-    };
-
-    transactionsService
-      .create(newTransactionData)
-      .then((res) => {
-        onAddTransaction(res.data);
-        resetForm();
-      })
-      .catch(console.error);
-  };
-
   const resetForm = () => {
     setForm({
       amount: 0,
@@ -100,6 +58,52 @@ const TransactionForm = ({
       type: "income",
     });
     setEditingId(null);
+    setEditingTransaction && setEditingTransaction(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.amount || !form.date || !form.category) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    // UPDATE MODE
+    if (editingId) {
+      const updatedTransaction: Transaction = {
+        id: editingId,
+        ...form,
+        amount: +form.amount,
+      };
+
+      try {
+        await transactionsService.update(editingId, updatedTransaction);
+        onUpdateTransaction(updatedTransaction);
+        resetForm();
+        navigate("/transactions");
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.error("Backend response:", err.response?.data);
+          console.error("Status:", err.response?.status);
+        } else {
+          console.error("Unexpected error:", err);
+        }
+        alert("Update failed! Check console.");
+      }
+
+      return;
+    }
+
+    // ADD MODE
+    try {
+      const response = await transactionsService.create(form); // no id sent
+      onAddTransaction(response.data); // backend returns new transaction with id
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      alert("Add failed! Check console.");
+    }
   };
 
   return (
@@ -126,8 +130,8 @@ const TransactionForm = ({
       <Input
         label="Amount"
         type="number"
-        value={form.amount}
         name="amount"
+        value={form.amount}
         onChange={handleChange}
       />
 
