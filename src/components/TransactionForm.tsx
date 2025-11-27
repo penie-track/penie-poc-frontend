@@ -4,12 +4,19 @@ import Input from "./DesignLibrary/Input";
 import Select from "./DesignLibrary/Select";
 import { Transaction } from "../types/transaction";
 import transactionsService from "../services/data";
+import axios from "axios";
 
 type TransactionFormProps = {
   onAddTransaction: (transaction: Transaction) => void;
+  onUpdateTransaction: (transaction: Transaction) => void;
+  editingTransaction?: Transaction | null;
 };
 
-const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
+const TransactionForm = ({
+  onAddTransaction,
+  onUpdateTransaction,
+  editingTransaction,
+}: TransactionFormProps) => {
   const [form, setForm] = useState<Omit<Transaction, "id">>({
     amount: 0,
     description: "",
@@ -17,6 +24,18 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
     date: "",
     type: "income",
   });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Prefill form when editing
+  useEffect(() => {
+    if (editingTransaction) {
+      const { id, ...rest } = editingTransaction;
+      setForm(rest);
+      setEditingId(id ?? null);
+    }
+  }, [editingTransaction]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -28,32 +47,67 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!form.amount || !form.date || !form.category) {
-      alert("Please fill all the required fields");
+      alert("Please fill all required fields");
       return;
     }
-    const newTransaction: Transaction = {
+    // Editing transaction
+    if (editingId !== null) {
+      const updatedTransaction: Transaction = {
+        id: editingId,
+        ...form,
+        amount: +form.amount,
+      };
+
+      transactionsService
+        .update(editingId, updatedTransaction)
+        .then((res) => {
+          onUpdateTransaction(res.data);
+          resetForm();
+        })
+        .catch((err) => {
+          if (axios.isAxiosError(err)) {
+            console.error("Backend Error:", err.response?.data);
+          }
+          alert("Update failed. Check console.");
+        });
+
+      return;
+    }
+
+    // Adding transaction
+    const newTransactionData = {
       ...form,
-      id: Date.now(),
       amount: +form.amount,
     };
+
     transactionsService
-      .create(newTransaction)
+      .create(newTransactionData)
       .then((res) => {
-        onAddTransaction(newTransaction);
-        setForm({
-          amount: 0,
-          description: "",
-          category: "",
-          date: "",
-          type: "income",
-        });
+        onAddTransaction(res.data);
+        resetForm();
       })
-      .catch((err) => console.error(err));
+      .catch(console.error);
   };
+
+  const resetForm = () => {
+    setForm({
+      amount: 0,
+      description: "",
+      category: "",
+      date: "",
+      type: "income",
+    });
+    setEditingId(null);
+  };
+
   return (
     <form className="bg-white shadow-lg rounded-xl p-6" onSubmit={handleSubmit}>
-      <h2 className="text-xl font-bold mb-4">Add Transaction</h2>
+      <h2 className="text-xl font-bold mb-4">
+        {editingId ? "Edit Transaction" : "Add Transaction"}
+      </h2>
+
       <div className="flex gap-2">
         <Button
           text="+ Income"
@@ -68,19 +122,20 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
           onClick={() => setForm((prev) => ({ ...prev, type: "expense" }))}
         />
       </div>
+
       <Input
         label="Amount"
         type="number"
         value={form.amount}
-        onChange={handleChange}
         name="amount"
+        onChange={handleChange}
       />
+
       <Select
         label="Category"
         name="category"
         value={form.category}
         options={[
-          "Select Category",
           "Groceries",
           "Transportation",
           "Utilities",
@@ -96,21 +151,27 @@ const TransactionForm = ({ onAddTransaction }: TransactionFormProps) => {
         ]}
         onChange={handleChange}
       />
+
       <Input
         label="Description"
-        value={form.description}
         type="text"
         name="description"
+        value={form.description}
         onChange={handleChange}
       />
+
       <Input
-        type="date"
-        value={form.date}
-        name="date"
-        onChange={handleChange}
         label="Date"
+        type="date"
+        name="date"
+        value={form.date}
+        onChange={handleChange}
       />
-      <Button type="submit" text="Add Transaction" />
+
+      <Button
+        type="submit"
+        text={editingId ? "Update Transaction" : "Add Transaction"}
+      />
     </form>
   );
 };

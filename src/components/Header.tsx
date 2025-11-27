@@ -8,8 +8,8 @@ const Header = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
           <h1 className="text-2xl font-bold text-purple-600">Penie</h1>
           <nav className="hidden md:flex space-x-6">
-            <NavLink to="/" className="text-gray-700 hover:text-purple-600">
-              DashBoard
+            <NavLink to="/add" className="text-gray-700 hover:text-purple-600">
+              Add
             </NavLink>
             <NavLink
               to="/analytics"
